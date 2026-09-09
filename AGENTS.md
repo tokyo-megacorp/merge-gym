@@ -26,3 +26,7 @@ Telemetry CLI changes require real subprocess tests. Keep observer/report output
 under `RUNNER_TEMP`, outside the checkout. Do not add review-event observers or
 attach telemetry checks to fixture PR heads. Never publish raw event files,
 transcripts, credentials, review bodies, or hidden expected results.
+
+PR and review observations belong to the external controller. GitHub Actions
+observers use only filtered workflow_run events: pull_request_target creates
+a check on the fixture HEAD and therefore changes the tested check set.

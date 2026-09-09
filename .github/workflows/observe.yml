@@ -1,8 +1,6 @@
 name: Gym Observe
 
 on:
-  pull_request_target:
-    types: [opened, reopened, closed, synchronize, edited, ready_for_review, converted_to_draft]
   workflow_run:
     workflows: ['Scenario CI']
     types: [requested, in_progress, completed]
