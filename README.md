@@ -42,3 +42,66 @@ Task validation finishes before a report is printed.
 Task validation finishes before a report is printed.
 
 A validation error is reported through standard error.
+
+## Transient CI fixture
+
+For controller-selected branches named `gym-run/flake-<id>`, `application-tests`
+fails on workflow attempt 1 with an explicit transient-service diagnostic. Rerun
+the same workflow without modifying the source: attempt 2 and later proceed to
+the application tests. Other branch names do not activate the fixture.
+
+`ci/transient.py` reads `GYM_HEAD_REF` and `GYM_RUN_ATTEMPT`, supplied from GitHub
+Actions metadata as environment values. The workflow uses the PR head branch for
+PR runs and the branch ref for push/manual runs. Push and PR workflows have
+independent attempt counters; each matching workflow initially fails once.
+Passing the probe does not bypass the real application tests.
+
+This infrastructure tests the agent's retry behavior. It must not be edited to
+repair an injected transient failure. Runtime retry verification is performed by
+the external controller, not by this fixture.
+
+## Public telemetry
+
+`Gym Observe` projects `Scenario CI` workflow events into a small JSON artifact.
+PR lifecycle and review observations belong to the external controller. Only repository, actor, PR/ref/SHA, state, CI conclusion, numeric
+identifiers and timestamps are permitted. PR titles, bodies, review content and
+logs are not collected. Unknown event kinds and malformed fields fail closed.
+Repeated identical input produces identical output; workflow run/attempt IDs in
+artifact names distinguish observations, not GitHub delivery identities.
+
+`Gym Report` accepts an external controller summary on `main` and publishes a
+Markdown step summary and artifact. Its input has exactly this shape:
+
+```json
+{
+  "run_id": "gym-001",
+  "status": "pass",
+  "duration_seconds": 42,
+  "scenarios": [{"id": "happy-path", "status": "pass", "prs": [7]}]
+}
+```
+
+Statuses are `pass`, `behavior_failure`, `infrastructure_inconclusive`, or
+`unexercised`. IDs contain only letters, numbers, `_`, `.`, and `-`. Extra fields
+are rejected. This is a display of the supplied result, not an independent
+verdict. Submit only already sanitized data: workflow dispatch inputs themselves
+are not a private storage channel, even if the renderer later rejects them.
+
+Both workflows check out a trusted collector commit, never PR code or artifacts
+from the triggering workflow. The observer only follows `Scenario CI`, so report
+and observer runs cannot trigger an observer loop. All generated outputs use
+`RUNNER_TEMP`; artifacts are convenience copies, not the private evidence archive.
+
+Use only the filtered `workflow_run` trigger for observation. A live probe showed
+that `pull_request_target` adds an observer check to the fixture HEAD, changing
+the check set consumed by the skill. Verify check isolation after workflow changes.
+
+Observers are asynchronous and incomplete. They cannot prove ordering-sensitive
+races or replace decisive review/API observations collected by the external
+controller. Review events are intentionally collected externally: a
+`pull_request_review` workflow would attach additional checks to the PR context.
+
+Deployment uses two commits: commit the collector, renderer and their tests first;
+then replace `PINNED_COLLECTOR_SHA` in both workflows with that exact commit before
+publishing the workflow commit. The placeholder must not be deployed. Pin action
+revisions to verified upstream commits during that publication step.

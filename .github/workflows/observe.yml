@@ -1,0 +1,27 @@
+name: Gym Observe
+
+on:
+  workflow_run:
+    workflows: ['Scenario CI']
+    types: [requested, in_progress, completed]
+
+permissions:
+  contents: read
+
+jobs:
+  collect-public-metadata:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 7c0d75db7d9e034578120fd3868c8703db34abf6
+          persist-credentials: false
+          sparse-checkout: telemetry
+      - name: Collect public event metadata
+        run: python3 telemetry/collect.py "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" > "$RUNNER_TEMP/observation.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: observation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/observation.json
+          if-no-files-found: error
