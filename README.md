@@ -34,3 +34,5 @@ GitHub Actions runs the same tests on pushes and pull requests. The check name i
 Reports preserve the configured status names in their counts.
 
 An empty task array reports a total of zero tasks.
+
+Invalid task input produces no JSON report on stdout.
