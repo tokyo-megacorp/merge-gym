@@ -30,3 +30,50 @@ and exit status 2. Successful reports exit with status 0.
 
 GitHub Actions runs the same tests on pushes and pull requests. The check name is
 `application-tests`; the workflow can also be started manually.
+
+## Public telemetry
+
+`Gym Observe` projects PR lifecycle and `Scenario CI` workflow events into a small
+JSON artifact. Only repository, actor, PR/ref/SHA, state, CI conclusion, numeric
+identifiers and timestamps are permitted. PR titles, bodies, review content and
+logs are not collected. Unknown event kinds and malformed fields fail closed.
+Repeated identical input produces identical output; workflow run/attempt IDs in
+artifact names distinguish observations, not GitHub delivery identities.
+
+`Gym Report` accepts an external controller summary on `main` and publishes a
+Markdown step summary and artifact. Its input has exactly this shape:
+
+```json
+{
+  "run_id": "gym-001",
+  "status": "pass",
+  "duration_seconds": 42,
+  "scenarios": [{"id": "happy-path", "status": "pass", "prs": [7]}]
+}
+```
+
+Statuses are `pass`, `behavior_failure`, `infrastructure_inconclusive`, or
+`unexercised`. IDs contain only letters, numbers, `_`, `.`, and `-`. Extra fields
+are rejected. This is a display of the supplied result, not an independent
+verdict. Submit only already sanitized data: workflow dispatch inputs themselves
+are not a private storage channel, even if the renderer later rejects them.
+
+Both workflows check out a trusted collector commit, never PR code or artifacts
+from the triggering workflow. The observer only follows `Scenario CI`, so report
+and observer runs cannot trigger an observer loop. All generated outputs use
+`RUNNER_TEMP`; artifacts are convenience copies, not the private evidence archive.
+
+GitHub documents `pull_request_target` and `workflow_run` with the default-branch
+SHA, keeping these runs separate from fixture-head checks. Verify that association
+live when deploying; do not make either telemetry job a required fixture check.
+See [GitHub event semantics](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows).
+
+Observers are asynchronous and incomplete. They cannot prove ordering-sensitive
+races or replace decisive review/API observations collected by the external
+controller. Review events are intentionally collected externally: a
+`pull_request_review` workflow would attach additional checks to the PR context.
+
+Deployment uses two commits: commit the collector, renderer and their tests first;
+then replace `PINNED_COLLECTOR_SHA` in both workflows with that exact commit before
+publishing the workflow commit. The placeholder must not be deployed. Pin action
+revisions to verified upstream commits during that publication step.

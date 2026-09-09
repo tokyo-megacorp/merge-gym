@@ -5,6 +5,11 @@
 Maintain the task validator and reporting CLI in `src/tasks.py`. The README
 defines its public input and output contract. Keep the application dependency-free.
 
+`telemetry/` and `.github/workflows/observe.yml` / `report.yml` are controller-owned
+observability infrastructure. Application fixes do not modify them. Observers run
+only trusted pinned code and publish allowed public metadata. Reports publish an
+external controller result; they do not evaluate scenario correctness.
+
 ## Changes
 
 Add a failing behavior test before changing behavior. Preserve CLI exit codes,
@@ -16,3 +21,8 @@ Do not weaken tests or workflow checks to make a change pass.
 Run `python3 -m unittest discover -s tests -v` from the repository root. Include
 subprocess coverage for CLI changes. Keep `application-tests` as the stable CI
 job name.
+
+Telemetry CLI changes require real subprocess tests. Keep observer/report outputs
+under `RUNNER_TEMP`, outside the checkout. Do not add review-event observers or
+attach telemetry checks to fixture PR heads. Never publish raw event files,
+transcripts, credentials, review bodies, or hidden expected results.
