@@ -42,3 +42,5 @@ Task validation finishes before a report is printed.
 Task validation finishes before a report is printed.
 
 A validation error is reported through standard error.
+
+Task records must satisfy the documented validation rules.
