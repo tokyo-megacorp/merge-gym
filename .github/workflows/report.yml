@@ -7,6 +7,10 @@ on:
         description: External controller public summary JSON; never include private evidence
         required: true
         type: string
+      signature:
+        description: Controller RSA-SHA256 signature of the exact sanitized_json input (base64)
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -19,10 +23,10 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: 7c0d75db7d9e034578120fd3868c8703db34abf6
+          ref: dabccd907820ed194d00dbe039311b1136c3dd7b
           persist-credentials: false
           sparse-checkout: telemetry
-      - name: Render validated public summary
+      - name: Verify controller signature and render public summary
         run: |
           python3 telemetry/render_report.py "$GITHUB_EVENT_PATH" --dispatch-event > "$RUNNER_TEMP/report.md"
           cat "$RUNNER_TEMP/report.md" >> "$GITHUB_STEP_SUMMARY"
