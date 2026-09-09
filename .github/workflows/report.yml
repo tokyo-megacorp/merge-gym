@@ -1,0 +1,33 @@
+name: Gym Report
+
+on:
+  workflow_dispatch:
+    inputs:
+      sanitized_json:
+        description: External controller public summary JSON; never include private evidence
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish-controller-result:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 7c0d75db7d9e034578120fd3868c8703db34abf6
+          persist-credentials: false
+          sparse-checkout: telemetry
+      - name: Render validated public summary
+        run: |
+          python3 telemetry/render_report.py "$GITHUB_EVENT_PATH" --dispatch-event > "$RUNNER_TEMP/report.md"
+          cat "$RUNNER_TEMP/report.md" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/report.md
+          if-no-files-found: error
