@@ -30,3 +30,5 @@ and exit status 2. Successful reports exit with status 0.
 
 GitHub Actions runs the same tests on pushes and pull requests. The check name is
 `application-tests`; the workflow can also be started manually.
+
+Reports preserve the configured status names in their counts.
