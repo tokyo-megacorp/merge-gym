@@ -105,3 +105,5 @@ Deployment uses two commits: commit the collector, renderer and their tests firs
 then replace `PINNED_COLLECTOR_SHA` in both workflows with that exact commit before
 publishing the workflow commit. The placeholder must not be deployed. Pin action
 revisions to verified upstream commits during that publication step.
+
+The task report is emitted only for valid input.
