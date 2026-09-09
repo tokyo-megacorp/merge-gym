@@ -99,11 +99,11 @@ class TelemetryCliTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("External controller result", result.stdout)
 
-    def test_renderer_reads_dispatch_payload_as_data(self):
+    def test_renderer_rejects_unsigned_dispatch_payload(self):
         payload = {"inputs": {"sanitized_json": json.dumps(summary())}}
         result = invoke("render_report.py", payload, ("--dispatch-event",))
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("gym-001", result.stdout)
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, "")
 
     def test_invalid_dispatch_input_fails_without_echo(self):
         payload = {"inputs": {"sanitized_json": '$(echo never-print-this)'}}

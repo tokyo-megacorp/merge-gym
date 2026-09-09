@@ -58,7 +58,13 @@ Repeated identical input produces identical output; workflow run/attempt IDs in
 artifact names distinguish observations, not GitHub delivery identities.
 
 `Gym Report` accepts an external controller summary on `main` and publishes a
-Markdown step summary and artifact. Its input has exactly this shape:
+Markdown step summary and artifact. Dispatch requires `sanitized_json`, the exact
+UTF-8 serialization of the summary below, and `signature`, its base64-encoded
+RSA-2048/SHA256 signature. The renderer verifies origin with the public key from
+its pinned checkout before parsing or rendering. The dedicated private key stays
+with the controller, outside the repository and tested agent mounts.
+
+The summary has exactly this shape:
 
 ```json
 {
@@ -71,8 +77,8 @@ Markdown step summary and artifact. Its input has exactly this shape:
 
 Statuses are `pass`, `behavior_failure`, `infrastructure_inconclusive`, or
 `unexercised`. IDs contain only letters, numbers, `_`, `.`, and `-`. Extra fields
-are rejected. This is a display of the supplied result, not an independent
-verdict. Submit only already sanitized data: workflow dispatch inputs themselves
+are rejected. The signature authenticates the publisher; it does not verify
+scenario correctness. Submit only already sanitized data: workflow dispatch inputs themselves
 are not a private storage channel, even if the renderer later rejects them.
 
 Both workflows check out a trusted collector commit, never PR code or artifacts
@@ -89,7 +95,8 @@ races or replace decisive review/API observations collected by the external
 controller. Review events are intentionally collected externally: a
 `pull_request_review` workflow would attach additional checks to the PR context.
 
-Deployment uses two commits: commit the collector, renderer and their tests first;
-then replace `PINNED_COLLECTOR_SHA` in both workflows with that exact commit before
-publishing the workflow commit. The placeholder must not be deployed. Pin action
-revisions to verified upstream commits during that publication step.
+Deployment uses two commits: commit changed trusted code, public keys and tests
+first; then update the affected workflow's checkout reference to that exact commit
+before publishing the workflow commit. Unchanged observers may retain their
+existing trusted revision. Never deploy a placeholder. Pin action revisions to
+verified upstream commits during that publication step.

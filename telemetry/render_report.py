@@ -8,7 +8,8 @@ import sys
 
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from telemetry.public_fields import choice, exact_keys, integer, object_value, text
+from telemetry.public_fields import choice, exact_keys, integer, text
+from telemetry.report_signature import verified_dispatch
 
 STATUSES = ("pass", "behavior_failure", "infrastructure_inconclusive", "unexercised")
 IDENTIFIER = r"[A-Za-z0-9][A-Za-z0-9_.-]{0,79}"
@@ -47,7 +48,7 @@ def main():
     try:
         value = json.loads(args.input_file.read_text())
         if args.dispatch_event:
-            value = json.loads(object_value(object_value(value).get("inputs")).get("sanitized_json", ""))
+            value = json.loads(verified_dispatch(value))
         output = render(value)
     except (OSError, ValueError, TypeError):
         print("telemetry: invalid sanitized report", file=sys.stderr)
