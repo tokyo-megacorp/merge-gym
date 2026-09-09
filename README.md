@@ -36,3 +36,5 @@ Reports preserve the configured status names in their counts.
 An empty task array reports a total of zero tasks.
 
 Invalid task input produces no JSON report on stdout.
+
+Task validation finishes before a report is printed.
