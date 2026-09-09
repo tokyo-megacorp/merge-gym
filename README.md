@@ -107,3 +107,5 @@ publishing the workflow commit. The placeholder must not be deployed. Pin action
 revisions to verified upstream commits during that publication step.
 
 The task report is emitted only for valid input.
+
+Completed tasks do not contribute to remaining effort.

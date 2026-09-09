@@ -63,6 +63,15 @@ class CliTests(unittest.TestCase):
         self.assertEqual(json.loads(result.stdout)["remaining_points"], 4)
         self.assertEqual(result.stderr, "")
 
+    def test_cli_completed_tasks_have_no_remaining_effort(self):
+        result = self.invoke('[{"id":"shipped","status":"done","points":8}]')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {
+            "total": 1, "counts": {"todo": 0, "doing": 0, "done": 1},
+            "remaining_points": 0,
+        })
+        self.assertEqual(result.stderr, "")
+
     def test_cli_reports_input_errors_without_partial_output(self):
         for content in ("{", '[{"id":"a"}]'):
             with self.subTest(content=content):
