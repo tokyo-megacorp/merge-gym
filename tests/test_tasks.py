@@ -117,6 +117,20 @@ class CliTests(unittest.TestCase):
                 self.assertIn("error:", result.stderr)
                 self.assertNotIn("Traceback", result.stderr)
 
+    def test_cli_mixed_statuses_sum_only_unfinished_points(self):
+        result = self.invoke(json.dumps([
+            {"id": "planned", "status": "todo", "points": 3},
+            {"id": "active", "status": "doing", "points": 7},
+            {"id": "shipped", "status": "done", "points": 20},
+            {"id": "zero", "status": "todo", "points": 0},
+        ]))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stderr, "")
+        self.assertEqual(json.loads(result.stdout), {
+            "total": 4, "counts": {"todo": 2, "doing": 1, "done": 1},
+            "remaining_points": 10,
+        })
+
 
 if __name__ == "__main__":
     unittest.main()
