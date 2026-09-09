@@ -28,7 +28,7 @@ def summarize(tasks):
             raise ValueError("points must be a nonnegative integer")
         seen.add(identifier)
         counts[status] += 1
-        if status == "done":
+        if status != "done":
             remaining += points
     return {"total": len(tasks), "counts": counts, "remaining_points": remaining}
 
