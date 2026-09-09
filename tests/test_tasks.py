@@ -63,12 +63,65 @@ class CliTests(unittest.TestCase):
         self.assertEqual(json.loads(result.stdout)["remaining_points"], 4)
         self.assertEqual(result.stderr, "")
 
+    def test_cli_reopening_completed_task_restores_remaining_effort(self):
+        for status, expected in (("done", 4), ("todo", 13), ("doing", 13)):
+            with self.subTest(status=status):
+                result = self.invoke(json.dumps([
+                    {"id": "reopened", "status": status, "points": 9},
+                    {"id": "queued", "status": "todo", "points": 4},
+                    {"id": "shipped", "status": "done", "points": 20},
+                ]))
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stderr, "")
+                self.assertEqual(json.loads(result.stdout)["remaining_points"], expected)
+
     def test_cli_completed_tasks_have_no_remaining_effort(self):
         result = self.invoke('[{"id":"shipped","status":"done","points":8}]')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads(result.stdout), {
             "total": 1, "counts": {"todo": 0, "doing": 0, "done": 1},
             "remaining_points": 0,
+        })
+        self.assertEqual(result.stderr, "")
+
+    def test_cli_mixed_statuses_count_only_unfinished_points(self):
+        result = self.invoke(json.dumps([
+            {"id": "planned", "status": "todo", "points": 3},
+            {"id": "active", "status": "doing", "points": 7},
+            {"id": "shipped", "status": "done", "points": 12},
+            {"id": "unestimated", "status": "todo", "points": 0},
+        ]))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {
+            "total": 4, "counts": {"todo": 2, "doing": 1, "done": 1},
+            "remaining_points": 10,
+        })
+        self.assertEqual(result.stderr, "")
+
+    def test_cli_mixed_statuses_sum_only_unfinished_effort(self):
+        result = self.invoke(json.dumps([
+            {"id": "planned", "status": "todo", "points": 3},
+            {"id": "active", "status": "doing", "points": 7},
+            {"id": "shipped", "status": "done", "points": 20},
+        ]))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {
+            "total": 3, "counts": {"todo": 1, "doing": 1, "done": 1},
+            "remaining_points": 10,
+        })
+        self.assertEqual(result.stderr, "")
+
+    def test_cli_mixed_statuses_include_zero_point_unfinished_tasks(self):
+        result = self.invoke(json.dumps([
+            {"id": "queued", "status": "todo", "points": 4},
+            {"id": "active", "status": "doing", "points": 7},
+            {"id": "shipped", "status": "done", "points": 20},
+            {"id": "free", "status": "todo", "points": 0},
+        ]))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {
+            "total": 4, "counts": {"todo": 2, "doing": 1, "done": 1},
+            "remaining_points": 11,
         })
         self.assertEqual(result.stderr, "")
 
@@ -89,6 +142,20 @@ class CliTests(unittest.TestCase):
                 self.assertEqual(result.stdout, "")
                 self.assertIn("error:", result.stderr)
                 self.assertNotIn("Traceback", result.stderr)
+
+    def test_cli_mixed_statuses_sum_only_unfinished_points(self):
+        result = self.invoke(json.dumps([
+            {"id": "planned", "status": "todo", "points": 3},
+            {"id": "active", "status": "doing", "points": 7},
+            {"id": "shipped", "status": "done", "points": 20},
+            {"id": "zero", "status": "todo", "points": 0},
+        ]))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stderr, "")
+        self.assertEqual(json.loads(result.stdout), {
+            "total": 4, "counts": {"todo": 2, "doing": 1, "done": 1},
+            "remaining_points": 10,
+        })
 
 
 if __name__ == "__main__":
