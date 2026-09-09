@@ -111,7 +111,7 @@ class CliTests(unittest.TestCase):
         })
         self.assertEqual(result.stderr, "")
 
-    def test_cli_mixed_statuses_sum_only_unfinished_points(self):
+    def test_cli_mixed_statuses_include_zero_point_unfinished_tasks(self):
         result = self.invoke(json.dumps([
             {"id": "queued", "status": "todo", "points": 4},
             {"id": "active", "status": "doing", "points": 7},
