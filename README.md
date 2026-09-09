@@ -113,3 +113,5 @@ Completed tasks do not contribute to remaining effort.
 The report includes counts for each supported task status.
 
 Task identifiers must be unique within the input array.
+
+Valid task input produces a JSON report on standard output.
