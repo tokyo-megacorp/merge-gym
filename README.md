@@ -115,3 +115,5 @@ The report includes counts for each supported task status.
 Task identifiers must be unique within the input array.
 
 Valid task input produces a JSON report on standard output.
+
+Task identifiers must be unique within the input array.
