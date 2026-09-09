@@ -109,3 +109,5 @@ revisions to verified upstream commits during that publication step.
 The task report is emitted only for valid input.
 
 Completed tasks do not contribute to remaining effort.
+
+The report includes counts for each supported task status.
