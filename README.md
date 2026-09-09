@@ -32,3 +32,5 @@ GitHub Actions runs the same tests on pushes and pull requests. The check name i
 `application-tests`; the workflow can also be started manually.
 
 Reports preserve the configured status names in their counts.
+
+An empty task array reports a total of zero tasks.
