@@ -33,8 +33,8 @@ GitHub Actions runs the same tests on pushes and pull requests. The check name i
 
 ## Public telemetry
 
-`Gym Observe` projects PR lifecycle and `Scenario CI` workflow events into a small
-JSON artifact. Only repository, actor, PR/ref/SHA, state, CI conclusion, numeric
+`Gym Observe` projects `Scenario CI` workflow events into a small JSON artifact.
+PR lifecycle and review observations belong to the external controller. Only repository, actor, PR/ref/SHA, state, CI conclusion, numeric
 identifiers and timestamps are permitted. PR titles, bodies, review content and
 logs are not collected. Unknown event kinds and malformed fields fail closed.
 Repeated identical input produces identical output; workflow run/attempt IDs in
@@ -63,10 +63,9 @@ from the triggering workflow. The observer only follows `Scenario CI`, so report
 and observer runs cannot trigger an observer loop. All generated outputs use
 `RUNNER_TEMP`; artifacts are convenience copies, not the private evidence archive.
 
-GitHub documents `pull_request_target` and `workflow_run` with the default-branch
-SHA, keeping these runs separate from fixture-head checks. Verify that association
-live when deploying; do not make either telemetry job a required fixture check.
-See [GitHub event semantics](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows).
+Use only the filtered `workflow_run` trigger for observation. A live probe showed
+that `pull_request_target` adds an observer check to the fixture HEAD, changing
+the check set consumed by the skill. Verify check isolation after workflow changes.
 
 Observers are asynchronous and incomplete. They cannot prove ordering-sensitive
 races or replace decisive review/API observations collected by the external
