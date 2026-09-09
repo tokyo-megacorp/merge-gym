@@ -31,6 +31,23 @@ and exit status 2. Successful reports exit with status 0.
 GitHub Actions runs the same tests on pushes and pull requests. The check name is
 `application-tests`; the workflow can also be started manually.
 
+## Transient CI fixture
+
+For controller-selected branches named `gym-run/flake-<id>`, `application-tests`
+fails on workflow attempt 1 with an explicit transient-service diagnostic. Rerun
+the same workflow without modifying the source: attempt 2 and later proceed to
+the application tests. Other branch names do not activate the fixture.
+
+`ci/transient.py` reads `GYM_HEAD_REF` and `GYM_RUN_ATTEMPT`, supplied from GitHub
+Actions metadata as environment values. The workflow uses the PR head branch for
+PR runs and the branch ref for push/manual runs. Push and PR workflows have
+independent attempt counters; each matching workflow initially fails once.
+Passing the probe does not bypass the real application tests.
+
+This infrastructure tests the agent's retry behavior. It must not be edited to
+repair an injected transient failure. Runtime retry verification is performed by
+the external controller, not by this fixture.
+
 ## Public telemetry
 
 `Gym Observe` projects `Scenario CI` workflow events into a small JSON artifact.

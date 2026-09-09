@@ -10,6 +10,10 @@ observability infrastructure. Application fixes do not modify them. Observers ru
 only trusted pinned code and publish allowed public metadata. Reports publish an
 external controller result; they do not evaluate scenario correctness.
 
+`ci/` and `.github/workflows/scenario-ci.yml` are controller-owned fixture
+infrastructure. A transient-service diagnostic calls for a workflow rerun without
+source changes. Do not alter the CI control, workflow, or their tests to bypass it.
+
 ## Changes
 
 Add a failing behavior test before changing behavior. Preserve CLI exit codes,
