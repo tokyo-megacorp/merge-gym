@@ -72,6 +72,33 @@ class CliTests(unittest.TestCase):
         })
         self.assertEqual(result.stderr, "")
 
+    def test_cli_mixed_statuses_count_only_unfinished_points(self):
+        result = self.invoke(json.dumps([
+            {"id": "planned", "status": "todo", "points": 3},
+            {"id": "active", "status": "doing", "points": 7},
+            {"id": "shipped", "status": "done", "points": 12},
+            {"id": "unestimated", "status": "todo", "points": 0},
+        ]))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {
+            "total": 4, "counts": {"todo": 2, "doing": 1, "done": 1},
+            "remaining_points": 10,
+        })
+        self.assertEqual(result.stderr, "")
+
+    def test_cli_mixed_statuses_sum_only_unfinished_effort(self):
+        result = self.invoke(json.dumps([
+            {"id": "planned", "status": "todo", "points": 3},
+            {"id": "active", "status": "doing", "points": 7},
+            {"id": "shipped", "status": "done", "points": 20},
+        ]))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {
+            "total": 3, "counts": {"todo": 1, "doing": 1, "done": 1},
+            "remaining_points": 10,
+        })
+        self.assertEqual(result.stderr, "")
+
     def test_cli_in_progress_tasks_contribute_remaining_effort(self):
         result = self.invoke('[{"id":"active","status":"doing","points":7}]')
         self.assertEqual(result.returncode, 0, result.stderr)
