@@ -111,6 +111,20 @@ class CliTests(unittest.TestCase):
         })
         self.assertEqual(result.stderr, "")
 
+    def test_cli_mixed_statuses_include_zero_point_unfinished_tasks(self):
+        result = self.invoke(json.dumps([
+            {"id": "queued", "status": "todo", "points": 4},
+            {"id": "active", "status": "doing", "points": 7},
+            {"id": "shipped", "status": "done", "points": 20},
+            {"id": "free", "status": "todo", "points": 0},
+        ]))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {
+            "total": 4, "counts": {"todo": 2, "doing": 1, "done": 1},
+            "remaining_points": 11,
+        })
+        self.assertEqual(result.stderr, "")
+
     def test_cli_in_progress_tasks_contribute_remaining_effort(self):
         result = self.invoke('[{"id":"active","status":"doing","points":7}]')
         self.assertEqual(result.returncode, 0, result.stderr)
