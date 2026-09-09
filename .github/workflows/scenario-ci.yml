@@ -1,0 +1,21 @@
+name: Scenario CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  application-tests:
+    name: application-tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run application tests
+        run: python3 -m unittest discover -s tests -v
